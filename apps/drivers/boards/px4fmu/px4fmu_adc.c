@@ -67,10 +67,10 @@
 /* Identifying number of each ADC channel: Variable Resistor. */
 
 #ifdef CONFIG_STM32_ADC3
-static const uint8_t  g_chanlist[ADC3_NCHANNELS] = {10, 11};// , 12, 13}; ADC12 and 13 are used by MPU on v1.5 boards
+static const uint8_t  g_chanlist[ADC3_NCHANNELS] = {10, 11, 12, 13};
 
 /* Configurations of pins used byte each ADC channels */
-static const uint32_t g_pinlist[ADC3_NCHANNELS]  = {GPIO_ADC3_IN10, GPIO_ADC3_IN11}; // ADC12 and 13 are used by MPU on v1.5 boards, GPIO_ADC3_IN12, GPIO_ADC3_IN13};
+static const uint32_t g_pinlist[ADC3_NCHANNELS]  = {GPIO_ADC3_IN10, GPIO_ADC3_IN11, GPIO_ADC3_IN12, GPIO_ADC3_IN13};
 #endif
 
 /************************************************************************************
@@ -93,45 +93,39 @@ static const uint32_t g_pinlist[ADC3_NCHANNELS]  = {GPIO_ADC3_IN10, GPIO_ADC3_IN
 int adc_devinit(void)
 {
 	static bool initialized = false;
-	struct adc_dev_s *adc[ADC3_NCHANNELS];
+	struct adc_dev_s *adc;
 	int ret;
 	int i;
 
 	/* Check if we have already initialized */
 
 	if (!initialized) {
-		char name[11];
 
 		for (i = 0; i < ADC3_NCHANNELS; i++) {
+			/* Configure the pins as analog inputs for the selected channels */
 			stm32_configgpio(g_pinlist[i]);
 		}
 
-		for (i = 0; i < 1; i++) {
-			/* Configure the pins as analog inputs for the selected channels */
-			//stm32_configgpio(g_pinlist[i]);
+		/*
+		 * Call stm32_adcinitialize() to get an instance of the ADC interface
+		 * multiple channels only supported with dma!
+		 */
+		adc = stm32_adcinitialize(3, (g_chanlist), 4);
 
-			/* Call stm32_adcinitialize() to get an instance of the ADC interface */
-			//multiple channels only supported with dma!
-			adc[i] = stm32_adcinitialize(3, (g_chanlist), 4);
+		if (adc == NULL) {
+			adbg("ERROR: Failed to get ADC interface\n");
+			return -ENODEV;
+		}
 
-			if (adc == NULL) {
-				adbg("ERROR: Failed to get ADC interface\n");
-				return -ENODEV;
-			}
+		/* Register the ADC driver at "/dev/adc0" */
+		ret = adc_register("/dev/adc0", adc);
 
-
-			/* Register the ADC driver at "/dev/adc0" */
-			sprintf(name, "/dev/adc%d", i);
-			ret = adc_register(name, adc[i]);
-
-			if (ret < 0) {
-				adbg("adc_register failed for adc %s: %d\n", name, ret);
-				return ret;
-			}
+		if (ret < 0) {
+			adbg("adc_register failed for /dev/adc0: %d\n", name, ret);
+			return ret;
 		}
 
 		/* Now we are initialized */
-
 		initialized = true;
 	}
 
