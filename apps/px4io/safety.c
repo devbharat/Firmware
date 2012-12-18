@@ -32,7 +32,9 @@
  ****************************************************************************/
 
  /**
-  * @file Safety button logic.
+  * @file safety.c 
+  * 
+  * Safety button logic.
   */
 
 #include <nuttx/config.h>

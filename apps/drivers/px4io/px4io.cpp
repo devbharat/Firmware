@@ -473,6 +473,10 @@ PX4IO::rx_callback(const uint8_t *buffer, size_t bytes_received)
 		orb_publish(ORB_ID(input_rc), _to_input_rc, &_input_rc);
 	}
 
+	/* publish battery status */
+	// XXX
+	printf("bat v: %d\n", (int)rep->battery_voltage);
+
 	/* remember the latched arming switch state */
 	_switch_armed = rep->armed;
 

@@ -65,6 +65,9 @@ ORB_DEFINE(vehicle_attitude, struct vehicle_attitude_s);
 #include "topics/sensor_combined.h"
 ORB_DEFINE(sensor_combined, struct sensor_combined_s);
 
+#include "topics/battery_status.h"
+ORB_DEFINE(battery_status, struct battery_status_s);
+
 #include "topics/vehicle_gps_position.h"
 ORB_DEFINE(vehicle_gps_position, struct vehicle_gps_position_s);
 

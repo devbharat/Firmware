@@ -141,6 +141,9 @@ comms_main(void)
 			
 			report.armed = system_state.armed;
 
+			/* battery voltage in mV */
+			report.battery_voltage = system_state.battery_voltage;
+
 			/* and send it */
 			hx_stream_send(stream, &report, sizeof(report));
 		}

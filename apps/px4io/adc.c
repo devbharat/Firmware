@@ -32,62 +32,50 @@
  ****************************************************************************/
 
 /**
- * @file controls.c
+ * @file adc.c
  *
- * R/C inputs and servo outputs.
+ * ADC readout and battery voltage conversion
  */
 
-
 #include <nuttx/config.h>
-#include <stdio.h>
+#include <nuttx/arch.h>
+
+#include <sys/types.h>
 #include <stdbool.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <debug.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <termios.h>
 #include <string.h>
-#include <poll.h>
+#include <assert.h>
+#include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
 
-#include <nuttx/clock.h>
+#include <debug.h>
 
-#include <drivers/drv_hrt.h>
-#include <systemlib/hx_stream.h>
-#include <systemlib/perf_counter.h>
-
-#define DEBUG
 #include "px4io.h"
 
-void
-controls_main(void)
+static int fd_adc = -1;
+
+int
+adc_init(const char* adc)
 {
-	int adc_dev = adc_init("/dev/adc0");
-
-	struct pollfd fds[2];
-
-	fds[0].fd = dsm_init("/dev/ttyS0");
-	fds[0].events = POLLIN;
-
-
-	fds[1].fd = sbus_init("/dev/ttyS2");
-	fds[1].events = POLLIN;
-
-	for (;;) {
-		/* run this loop at ~100Hz */
-		poll(fds, 2, 10);
-
-		if (fds[0].revents & POLLIN)
-			dsm_input();
-		if (fds[1].revents & POLLIN)
-			sbus_input();
-
-		/* XXX do ppm processing, bypass mode, etc. here */
-
-		/* do PWM output updates */
-		mixer_tick();
-
-		/* read out battery voltage and post to system_state struct */
-		adc_read();
+	fd_adc = open(adc, O_RDONLY | O_NONBLOCK);
+	if (fd_adc < 0) {
+		lib_lowprintf("\n/dev/adc0\n");
+		lib_lowprintf("FATAL: no ADC found\n");
 	}
+	return fd_adc;
+}
+
+int
+adc_read(void)
+{
+	struct adc_msg_s sample;
+
+	unsigned readsize = sizeof(struct adc_msg_s);
+	unsigned nbytes = read(fd_adc, &sample, readsize);
+
+	system_state.battery_voltage = sample.am_data;
+	lib_lowprintf("bat: %d, nb: %d\n", (int)system_state.battery_voltage, nbytes);
+
+	/* return 0 on success, 1 else */
+	return !(nbytes == readsize);
 }

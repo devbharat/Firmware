@@ -73,6 +73,7 @@ struct px4io_report {
 	uint16_t	rc_channel[PX4IO_INPUT_CHANNELS];
 	bool		armed;
 	uint8_t		channel_count;
+	uint16_t	battery_voltage;
 };
 
 #pragma pack(pop)

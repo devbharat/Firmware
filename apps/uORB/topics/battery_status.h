@@ -32,62 +32,35 @@
  ****************************************************************************/
 
 /**
- * @file controls.c
+ * @file battery_status.h
  *
- * R/C inputs and servo outputs.
+ * Definition of the battery status uORB topic.
  */
 
+#ifndef BATTERY_STATUS_H_
+#define BATTERY_STATUS_H_
 
-#include <nuttx/config.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <debug.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <termios.h>
-#include <string.h>
-#include <poll.h>
+#include "../uORB.h"
 
-#include <nuttx/clock.h>
+/**
+ * @addtogroup topics
+ * @{
+ */
 
-#include <drivers/drv_hrt.h>
-#include <systemlib/hx_stream.h>
-#include <systemlib/perf_counter.h>
+/**
+ * Battery voltages and status
+ */
+struct battery_status_s {
+	float   battery_voltage_v;		/**< Battery voltage in volts, filtered           	 */
+	float	battery_current_a;		/**< Battery current in amperes, filtered, -1 if unknown */
+	float	battery_dischared_mah;		/**< Discharged amount in mAh, filtered, -1 if unknown	 */
+};
 
-#define DEBUG
-#include "px4io.h"
+/**
+ * @}
+ */
 
-void
-controls_main(void)
-{
-	int adc_dev = adc_init("/dev/adc0");
+/* register this as object request broker structure */
+ORB_DECLARE(battery_status);
 
-	struct pollfd fds[2];
-
-	fds[0].fd = dsm_init("/dev/ttyS0");
-	fds[0].events = POLLIN;
-
-
-	fds[1].fd = sbus_init("/dev/ttyS2");
-	fds[1].events = POLLIN;
-
-	for (;;) {
-		/* run this loop at ~100Hz */
-		poll(fds, 2, 10);
-
-		if (fds[0].revents & POLLIN)
-			dsm_input();
-		if (fds[1].revents & POLLIN)
-			sbus_input();
-
-		/* XXX do ppm processing, bypass mode, etc. here */
-
-		/* do PWM output updates */
-		mixer_tick();
-
-		/* read out battery voltage and post to system_state struct */
-		adc_read();
-	}
-}
+#endif

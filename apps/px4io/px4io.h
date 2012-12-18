@@ -93,6 +93,11 @@ struct sys_state_s
 	 */
 	bool		relays[PX4IO_RELAY_CHANNELS];
 
+	/**
+	 * Battery voltage
+	 */
+	uint16_t	battery_voltage;
+
 	/*
 	 * If true, we are using the FMU controls.
 	 */
@@ -172,6 +177,8 @@ extern int	dsm_init(const char *device);
 extern void	dsm_input(void);
 extern int	sbus_init(const char *device);
 extern void	sbus_input(void);
+extern int 	adc_init(const char *device);
+extern int 	adc_read(void);
 
 /*
  * Assertion codes
