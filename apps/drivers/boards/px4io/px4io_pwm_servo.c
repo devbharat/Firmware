@@ -32,7 +32,7 @@
  ****************************************************************************/
 
 /*
- * @file px4fmu_pwm_servo.c
+ * @file px4io_pwm_servo.c
  *
  * Configuration data for the stm32 pwm_servo driver.
  *

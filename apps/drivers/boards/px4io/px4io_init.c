@@ -64,6 +64,8 @@
 #include <drivers/drv_led.h>
 #include <drivers/drv_pwm_output.h>
 
+extern int adc_devinit(void);
+
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
@@ -92,4 +94,20 @@ __EXPORT void stm32_boardinitialize(void)
 	stm32_configgpio(GPIO_ACC_OC_DETECT);
 	stm32_configgpio(GPIO_SERVO_OC_DETECT);
 	stm32_configgpio(GPIO_BTN_SAFETY);
+
+#ifdef CONFIG_ADC
+	int adc_state = adc_devinit();
+
+	if (adc_state != OK) {
+		/* Try again */
+		adc_state = adc_devinit();
+
+		// if (adc_state != OK) {
+		// 	/* Give up */
+		// 	message("[boot] FAILED adc_devinit: %d\n", adc_state);
+		// 	return -ENODEV;
+		// }
+	}
+
+#endif
 }
