@@ -2255,13 +2255,13 @@ set_vtol_state_rc(struct vehicle_status_s *status_local, struct vtol_vehicle_sta
 	/* set vtol state according to RC regime switch */
 	transition_result_t res = TRANSITION_NOT_CHANGED;
 
-	if (sp_man->regime_switch == sp_man->HOVER && !vtol_status->vtol_in_rw_mode) {		/* vehicle is in mc mode */
+	if (sp_man->aux1 < 0.0f && !vtol_status->vtol_in_rw_mode) {		/* vehicle is in mc mode */
 		vtol_status->vtol_in_rw_mode = true;
 		res = TRANSITION_CHANGED;
 		if (status_local->is_vtol && !status_local->is_rotary_wing) {
 			status_local->is_rotary_wing = true;
 		}
-	} else if(sp_man->regime_switch == sp_man->CRUISE && vtol_status->vtol_in_rw_mode){
+	} else if(sp_man->aux1 >= 0.0f && vtol_status->vtol_in_rw_mode){
 		vtol_status->vtol_in_rw_mode = false;
 		res = TRANSITION_CHANGED;
 		if (status_local->is_vtol && status_local->is_rotary_wing) {
